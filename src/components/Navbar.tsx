@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Menu, X, User, ShoppingBag, BookOpen, Newspaper, Briefcase, Info, Heart, LogIn } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import esantiLogo from 'figma:asset/6073016e94328581a129c7018a395de985b00448.png';
+import esantiLogo from '../assets/6073016e94328581a129c7018a395de985b00448.png';
+
+
+import { getCurrentUser, User as AuthUser } from '../data/auth';
 
 interface NavbarProps {
   currentPage: string;
@@ -10,19 +13,23 @@ interface NavbarProps {
   isLoggedIn: boolean;
   citizenId?: string;
   donorRank?: string;
+  user?: AuthUser | null;
 }
 
-export function Navbar({ currentPage, onNavigate, isLoggedIn, citizenId, donorRank }: NavbarProps) {
+
+export function Navbar({ currentPage, onNavigate, isLoggedIn, citizenId, donorRank, user }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { id: 'home', label: 'Home', icon: null },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
-    { id: 'books', label: 'Books', icon: BookOpen },
-    { id: 'news', label: 'News', icon: Newspaper },
     { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'blog', label: 'Blog', icon: Newspaper },
     { id: 'about', label: 'About', icon: Info },
   ];
+
+  if (user && (user.role === 'admin' || user.role === 'editor')) {
+    navItems.push({ id: 'admin', label: 'Admin', icon: Briefcase });
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
@@ -45,11 +52,10 @@ export function Navbar({ currentPage, onNavigate, isLoggedIn, citizenId, donorRa
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`px-3 py-2 rounded-md transition-colors flex items-center space-x-1 ${
-                    currentPage === item.id
-                      ? 'bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`px-3 py-2 rounded-md transition-colors flex items-center space-x-1 ${currentPage === item.id
+                    ? 'bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   {Icon && <Icon className="w-4 h-4" />}
                   <span>{item.label}</span>
@@ -67,7 +73,7 @@ export function Navbar({ currentPage, onNavigate, isLoggedIn, citizenId, donorRa
               <Heart className="w-4 h-4 mr-2" />
               Donate
             </Button>
-            
+
             {isLoggedIn ? (
               <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg cursor-pointer" onClick={() => onNavigate('dashboard')}>
                 <User className="w-5 h-5" style={{ color: 'var(--esanti-dark-green)' }} />
@@ -118,11 +124,10 @@ export function Navbar({ currentPage, onNavigate, isLoggedIn, citizenId, donorRa
                     onNavigate(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center space-x-2 ${
-                    currentPage === item.id
-                      ? 'bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center space-x-2 ${currentPage === item.id
+                    ? 'bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   {Icon && <Icon className="w-4 h-4" />}
                   <span>{item.label}</span>

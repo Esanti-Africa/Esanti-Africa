@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, MapPin, Users, Target, CheckCircle, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, MapPin, Users, Target, CheckCircle, Clock, ArrowLeft, Heart, Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -8,163 +8,229 @@ import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { BackButton } from './BackButton';
-
-interface Milestone {
-  id: string;
-  title: string;
-  amount: number;
-  status: 'pending' | 'in-progress' | 'completed' | 'verified';
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  location: string;
-  targetAmount: number;
-  raisedAmount: number;
-  backers: number;
-  image: string;
-  creator: string;
-  milestones: Milestone[];
-  daysLeft: number;
-  isVerified: boolean;
-}
-
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    title: 'Clean Water Well for Kitui Village',
-    description: 'Building a sustainable water well to provide clean drinking water for 500 families in rural Kenya.',
-    category: 'Infrastructure',
-    location: 'Kitui, Kenya',
-    targetAmount: 500000,
-    raisedAmount: 327500,
-    backers: 234,
-    image: 'https://images.unsplash.com/photo-1624695493609-c7cb60e7e583?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwY29tbXVuaXR5JTIwZ2F0aGVyaW5nfGVufDF8fHx8MTc1OTU2OTE3N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    creator: 'Kitui Community Development',
-    milestones: [
-      { id: '1', title: 'Site survey and permits', amount: 50000, status: 'completed' },
-      { id: '2', title: 'Drilling equipment', amount: 200000, status: 'completed' },
-      { id: '3', title: 'Well construction', amount: 150000, status: 'in-progress' },
-      { id: '4', title: 'Water quality testing', amount: 100000, status: 'pending' },
-    ],
-    daysLeft: 45,
-    isVerified: true,
-  },
-  {
-    id: '2',
-    title: 'Girls Education Fund - Lagos',
-    description: 'Providing school fees, uniforms, and supplies for 100 girls from low-income families.',
-    category: 'Education',
-    location: 'Lagos, Nigeria',
-    targetAmount: 300000,
-    raisedAmount: 285000,
-    backers: 456,
-    image: 'https://images.unsplash.com/photo-1624695493609-c7cb60e7e583?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwY29tbXVuaXR5JTIwZ2F0aGVyaW5nfGVufDF8fHx8MTc1OTU2OTE3N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    creator: 'Educate Her Initiative',
-    milestones: [
-      { id: '1', title: 'Student selection', amount: 30000, status: 'completed' },
-      { id: '2', title: 'School fees (Term 1)', amount: 120000, status: 'completed' },
-      { id: '3', title: 'Uniforms and supplies', amount: 80000, status: 'verified' },
-      { id: '4', title: 'School fees (Term 2)', amount: 70000, status: 'pending' },
-    ],
-    daysLeft: 60,
-    isVerified: true,
-  },
-  {
-    id: '3',
-    title: 'Organic Farming Cooperative',
-    description: 'Establishing a farmer-owned cooperative for organic vegetable production and local market distribution.',
-    category: 'Agriculture',
-    location: 'Kumasi, Ghana',
-    targetAmount: 400000,
-    raisedAmount: 165000,
-    backers: 89,
-    image: 'https://images.unsplash.com/photo-1734255074937-4b446b8dcf18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwbWFya2V0cGxhY2UlMjB2ZW5kb3JzfGVufDF8fHx8MTc1OTU4MzQyMnww&ixlib=rb-4.1.0&q=80&w=1080',
-    creator: 'Kumasi Farmers Alliance',
-    milestones: [
-      { id: '1', title: 'Land lease and preparation', amount: 100000, status: 'completed' },
-      { id: '2', title: 'Seeds and organic fertilizer', amount: 80000, status: 'in-progress' },
-      { id: '3', title: 'Irrigation system', amount: 120000, status: 'pending' },
-      { id: '4', title: 'Market infrastructure', amount: 100000, status: 'pending' },
-    ],
-    daysLeft: 90,
-    isVerified: true,
-  },
-  {
-    id: '4',
-    title: 'Mobile Health Clinic - Rural Tanzania',
-    description: 'Equipping a mobile clinic to serve remote villages with basic healthcare and maternal services.',
-    category: 'Healthcare',
-    location: 'Mwanza, Tanzania',
-    targetAmount: 750000,
-    raisedAmount: 423000,
-    backers: 312,
-    image: 'https://images.unsplash.com/photo-1624695493609-c7cb60e7e583?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwY29tbXVuaXR5JTIwZ2F0aGVyaW5nfGVufDF8fHx8MTc1OTU2OTE3N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    creator: 'Mwanza Health Partners',
-    milestones: [
-      { id: '1', title: 'Vehicle purchase', amount: 300000, status: 'completed' },
-      { id: '2', title: 'Medical equipment', amount: 200000, status: 'in-progress' },
-      { id: '3', title: 'Staff training', amount: 150000, status: 'pending' },
-      { id: '4', title: 'First quarter operations', amount: 100000, status: 'pending' },
-    ],
-    daysLeft: 75,
-    isVerified: true,
-  },
-];
+import { getProjects, Project } from '../data/projects'; // Import data service
 
 interface ProjectsPageProps {
   onBack?: () => void;
   canGoBack?: boolean;
 }
 
-export function ProjectsPage({ onBack = () => {}, canGoBack = false }: ProjectsPageProps) {
+export function ProjectsPage({ onBack = () => { }, canGoBack = false }: ProjectsPageProps) {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTab, setSelectedTab] = useState<string>('all');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const filteredProjects = mockProjects.filter((project) => {
+  useEffect(() => {
+    setProjects(getProjects());
+  }, []);
+
+  const filteredProjects = projects.filter((project) => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchQuery.toLowerCase());
+      project.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTab = selectedTab === 'all' || project.category === selectedTab;
     return matchesSearch && matchesTab;
   });
 
   const getMilestoneStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-500';
-      case 'verified':
-        return 'bg-blue-500';
-      case 'in-progress':
-        return 'bg-yellow-500';
-      default:
-        return 'bg-gray-300';
+      case 'completed': return 'bg-green-500';
+      case 'verified': return 'bg-blue-500';
+      case 'in-progress': return 'bg-yellow-500';
+      default: return 'bg-gray-300';
     }
   };
 
+  // Detail View
+  if (selectedProject) {
+    const percentComplete = (selectedProject.raisedAmount / selectedProject.targetAmount) * 100;
+
+    return (
+      <div className="min-h-screen bg-gray-50 pt-24 pb-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Button variant="ghost" className="mb-6 flex items-center gap-2" onClick={() => setSelectedProject(null)}>
+            <ArrowLeft className="w-4 h-4" /> Back to Projects
+          </Button>
+
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="relative h-64 md:h-96 w-full">
+              <ImageWithFallback
+                src={selectedProject.image}
+                alt={selectedProject.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
+                <div className="p-8 text-white w-full">
+                  <Badge className="mb-2 bg-green-600 hover:bg-green-700 pointer-events-none">{selectedProject.category}</Badge>
+                  <h1 className="text-3xl md:text-5xl font-extrabold mb-3 leading-tight">{selectedProject.title}</h1>
+                  <div className="flex items-center gap-6 text-sm md:text-base font-medium opacity-90">
+                    <span className="flex items-center gap-1.5"><MapPin className="w-5 h-5 text-[var(--esanti-yellow)]" /> {selectedProject.location}</span>
+                    <span className="flex items-center gap-1.5"><Users className="w-5 h-5 text-[var(--esanti-orange)]" /> {selectedProject.backers} backers</span>
+                    <span className="flex items-center gap-1.5"><Clock className="w-5 h-5 text-[var(--esanti-red)]" /> {selectedProject.daysLeft} days left</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 grid md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 space-y-8">
+                <section>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900 flex items-center gap-2">
+                    <Target className="w-6 h-6 text-green-700" />
+                    About this Project
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+                    {selectedProject.detailedDescription || selectedProject.description}
+                  </p>
+
+                  {/* Video Section */}
+                  {selectedProject.videoUrl && (
+                    <div className="mt-8 rounded-xl overflow-hidden shadow-lg border border-gray-100">
+                      <div className="aspect-w-16 aspect-h-9 bg-black">
+                        {/* Using iframe for demo purposes, in production use a proper video component */}
+                        <iframe
+                          width="100%"
+                          height="450"
+                          src={selectedProject.videoUrl}
+                          title="Project Video"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        ></iframe>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <section>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+                    <Target className="w-6 h-6 text-green-700" />
+                    Milestones & Progress
+                  </h3>
+                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                    {selectedProject.milestones.map((milestone, index) => (
+                      <div key={milestone.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        {/* Dot */}
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 
+                            ${milestone.status === 'verified' ? 'bg-green-500' :
+                            milestone.status === 'completed' ? 'bg-blue-500' :
+                              milestone.status === 'in-progress' ? 'bg-yellow-400' : 'bg-gray-300'}
+                        `}>
+                          {milestone.status === 'verified' && <CheckCircle className="w-4 h-4 text-white" />}
+                          {milestone.status === 'in-progress' && <Clock className="w-4 h-4 text-white animate-pulse" />}
+                        </div>
+
+                        {/* Content */}
+                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-gray-900">{milestone.title}</h4>
+                            <Badge variant={milestone.status === 'verified' ? 'default' : 'secondary'} className={`
+                                ${getMilestoneStatusColor(milestone.status).replace('bg-', 'bg-')}/10 text-${getMilestoneStatusColor(milestone.status).replace('bg-', '')}-700 border-0
+                             `}>
+                              {milestone.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500 font-mono mb-2">{milestone.amount.toLocaleString()} FCFA</p>
+                          {milestone.description && (
+                            <p className="text-sm text-gray-600 border-t pt-2 mt-2">{milestone.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <div className="bg-blue-50 p-6 rounded-lg text-blue-800 border-l-4 border-blue-600">
+                  <h4 className="font-bold flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5" /> Radical Transparency</h4>
+                  <p className="text-sm">
+                    We update all donation amounts daily at <strong>9:00 PM GMT+1</strong>.
+                    Every transaction is logged and publicly visible.
+                    Any funds raised exceeding a specific milestone requirement are strictly
+                    protected and automatically allocated to the next subsequent project milestone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="md:col-span-1">
+                <div className="bg-gray-50 p-6 rounded-xl sticky top-24 border border-gray-200 shadow-sm">
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>Raised</span>
+                      <span>Target</span>
+                    </div>
+                    <div className="flex justify-between items-baseline mb-2">
+                      <span className="text-2xl font-bold text-green-700">{selectedProject.raisedAmount.toLocaleString()} FCFA</span>
+                      <span className="text-sm text-gray-500">of {selectedProject.targetAmount.toLocaleString()} FCFA</span>
+                    </div>
+                    <Progress value={percentComplete} className="h-3 mb-2" />
+                    <p className="text-xs text-right text-gray-500">{percentComplete.toFixed(0)}% Funded</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="bg-[#ff7900] text-white p-6 rounded-xl text-center shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-white/20">
+                      <div className="mb-2 bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+                        <Phone className="w-6 h-6" />
+                      </div>
+                      <p className="font-bold text-xl mb-2">Orange Money</p>
+                      <div className="flex items-center justify-center gap-2 text-2xl font-bold font-mono tracking-wider bg-black/20 py-2 rounded-lg">
+                        +237 69x xxx xxx
+                      </div>
+                    </div>
+
+                    <div className="bg-[#ffcc00] text-black p-6 rounded-xl text-center shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-black/10">
+                      <div className="mb-2 bg-black/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+                        <Phone className="w-6 h-6" />
+                      </div>
+                      <p className="font-bold text-xl mb-2">MTN Mobile Money</p>
+                      <div className="flex items-center justify-center gap-2 text-2xl font-bold font-mono tracking-wider bg-white/40 py-2 rounded-lg">
+                        +237 67x xxx xxx
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-4 text-center leading-relaxed">
+                    <strong>Important:</strong> When sending money, please specify the project name in the reference/message field so funds are allocated correctly.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // List View
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BackButton onBack={onBack} canGoBack={canGoBack} />
-        
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="mb-2">Esanti Projects</h1>
-          <p className="text-gray-600">Result-based crowdfunding for community development</p>
+        <div className="mb-8 text-center max-w-3xl mx-auto">
+          <h1 className="mb-4 text-4xl font-extrabold text-gray-900">Community Projects</h1>
+          <p className="text-gray-600 text-lg mb-4">
+            Community backed, funded, and supported projects are what make the difference.
+            We take responsibility to solve the problems in our community and Cameroon.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Badge variant="outline" className="border-green-600 text-green-700">Transparency</Badge>
+            <Badge variant="outline" className="border-green-600 text-green-700">Accountability</Badge>
+            <Badge variant="outline" className="border-green-600 text-green-700">Community Driven</Badge>
+          </div>
         </div>
 
-        {/* Info Card */}
-        <Card className="mb-8 border-l-4" style={{ borderLeftColor: 'var(--esanti-green)' }}>
+        {/* Info Card - Transparency */}
+        <Card className="mb-8 border-l-4 bg-gradient-to-r from-green-50 to-transparent" style={{ borderLeftColor: 'var(--esanti-green)' }}>
           <CardContent className="p-6">
             <div className="flex items-start space-x-3">
               <Target className="w-6 h-6 mt-1" style={{ color: 'var(--esanti-green)' }} />
               <div>
-                <h3>Result-Based Funding</h3>
+                <h3 className="font-bold text-lg">Radical Transparency & Accountability</h3>
                 <p className="text-gray-600 mt-1">
-                  Funds are released after milestone verification with proof of delivery. Track every step of your backed
-                  projects with transparency reports and community verification.
+                  We value transparency. All transaction logs and fund usage are publicly shown for donors and potential donors.
+                  Donated amounts are updated every day at <strong>9:00 PM GMT+1</strong>.
                 </p>
               </div>
             </div>
@@ -178,7 +244,7 @@ export function ProjectsPage({ onBack = () => {}, canGoBack = false }: ProjectsP
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Search projects..."
+                placeholder="Search projects by name or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -187,7 +253,7 @@ export function ProjectsPage({ onBack = () => {}, canGoBack = false }: ProjectsP
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full grid grid-cols-5">
+            <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 h-auto">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="Education">Education</TabsTrigger>
               <TabsTrigger value="Healthcare">Healthcare</TabsTrigger>
@@ -198,109 +264,57 @@ export function ProjectsPage({ onBack = () => {}, canGoBack = false }: ProjectsP
         </div>
 
         {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProjects.map((project) => {
             const percentComplete = (project.raisedAmount / project.targetAmount) * 100;
-            const completedMilestones = project.milestones.filter(m => m.status === 'completed' || m.status === 'verified').length;
 
             return (
-              <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="p-0">
-                  <div className="relative h-56">
-                    <ImageWithFallback
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <Badge className="absolute top-3 left-3 bg-white text-gray-700 border-0">
-                      {project.category}
-                    </Badge>
-                    <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white border-0">
-                      Verified
-                    </Badge>
+              <div
+                key={project.id}
+                className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-100"
+                onClick={() => setSelectedProject(project)}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <ImageWithFallback
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-white/90 text-gray-800 backdrop-blur-sm shadow-sm">{project.category}</Badge>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="p-6">
-                  <h3 className="mb-2">{project.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-                  
-                  <div className="flex items-center space-x-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {project.location}
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {project.backers} backers
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {project.daysLeft} days
-                    </div>
+                </div>
+
+                <div className="p-6">
+                  <div className="mb-4">
+                    <h3 className="font-bold text-lg mb-2 line-clamp-1 group-hover:text-green-700 transition-colors">{project.title}</h3>
+                    <p className="text-gray-600 text-sm line-clamp-2">{project.description}</p>
                   </div>
 
-                  {/* Progress */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">
-                        KES {project.raisedAmount.toLocaleString()} raised
-                      </span>
-                      <span className="text-sm" style={{ color: 'var(--esanti-green)' }}>
-                        {percentComplete.toFixed(0)}%
-                      </span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Raised</span>
+                      <span className="font-bold">{project.raisedAmount.toLocaleString()} FCFA</span>
                     </div>
                     <Progress value={percentComplete} className="h-2" />
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-500">
-                        Goal: KES {project.targetAmount.toLocaleString()}
-                      </span>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{percentComplete.toFixed(0)}%</span>
+                      <span>Goal: {project.targetAmount.toLocaleString()} FCFA</span>
                     </div>
                   </div>
 
-                  {/* Milestones */}
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm">Milestones</span>
-                      <span className="text-sm text-gray-600">
-                        {completedMilestones} of {project.milestones.length} completed
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {project.milestones.map((milestone, idx) => (
-                        <div key={milestone.id} className="flex items-center space-x-3">
-                          <div className={`w-2 h-2 rounded-full ${getMilestoneStatusColor(milestone.status)}`}></div>
-                          <span className="text-sm flex-1">{milestone.title}</span>
-                          {milestone.status === 'verified' && (
-                            <CheckCircle className="w-4 h-4 text-blue-500" />
-                          )}
-                          {milestone.status === 'completed' && (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {project.location}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {project.daysLeft} days left</span>
                   </div>
-                </CardContent>
-                
-                <CardFooter className="p-6 pt-0 flex gap-2">
-                  <Button className="flex-1 bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] text-white hover:opacity-90">
-                    Back This Project
-                  </Button>
-                  <Button variant="outline">
-                    View Details
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+
+                {/* Hover Overlay Effect */}
+                <div className="absolute inset-0 bg-green-900/0 group-hover:bg-green-900/5 transition-colors duration-300 pointer-events-none" />
+              </div>
             );
           })}
         </div>
-
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500">No projects found matching your search.</p>
-          </div>
-        )}
       </div>
     </div>
   );

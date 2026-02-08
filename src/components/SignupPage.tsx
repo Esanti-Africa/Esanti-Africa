@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 interface SignupPageProps {
   onNavigate: (page: string) => void;
-  onSignup: () => void;
+  onSignup: (email?: string) => void;
 }
 
 export function SignupPage({ onNavigate, onSignup }: SignupPageProps) {
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -32,10 +33,11 @@ export function SignupPage({ onNavigate, onSignup }: SignupPageProps) {
       setStep(2);
     } else {
       // In production, this would create the user account
-      onSignup();
+      onSignup(formData.email);
       onNavigate('dashboard');
     }
   };
+
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

@@ -1,14 +1,15 @@
 import { Target, Users, Globe, Heart, Shield, TrendingUp, Award, Lightbulb } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { BackButton } from './BackButton';
-import esantiLogo from 'figma:asset/6073016e94328581a129c7018a395de985b00448.png';
+import esantiLogo from '../assets/6073016e94328581a129c7018a395de985b00448.png';
+
 
 interface AboutPageProps {
   onBack?: () => void;
   canGoBack?: boolean;
 }
 
-export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPageProps) {
+export function AboutPage({ onBack = () => { }, canGoBack = false }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-white pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,8 +54,8 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
               </div>
               <h2 className="mb-4">Our Mission</h2>
               <p className="text-gray-700 leading-relaxed">
-                To create a unified digital platform that empowers Africans and the diaspora through commerce, education, 
-                transparent community development, and cultural preservation. We are building more than a platform—we are 
+                To create a unified digital platform that empowers Africans and the diaspora through commerce, education,
+                transparent community development, and cultural preservation. We are building more than a platform—we are
                 building a nation united by values, not borders.
               </p>
             </CardContent>
@@ -67,8 +68,8 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
               </div>
               <h2 className="mb-4">Our Vision</h2>
               <p className="text-gray-700 leading-relaxed">
-                A thriving digital nation where every African, wherever they are, has access to economic opportunities, 
-                quality education, trusted information, and the ability to drive positive change in their communities 
+                A thriving digital nation where every African, wherever they are, has access to economic opportunities,
+                quality education, trusted information, and the ability to drive positive change in their communities
                 through transparent, result-based collaboration.
               </p>
             </CardContent>
@@ -80,10 +81,10 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
           <div className="bg-white rounded-2xl shadow-2xl p-12 md:p-20 text-center border-4 border-gray-100">
             <div className="max-w-2xl mx-auto">
               <div className="mb-8">
-                <img 
-                  src={esantiLogo} 
-                  alt="Esanti Africa Logo" 
-                  className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain drop-shadow-2xl" 
+                <img
+                  src={esantiLogo}
+                  alt="Esanti Africa Logo"
+                  className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain drop-shadow-2xl"
                 />
               </div>
               <h2 className="text-4xl md:text-5xl mb-4" style={{ color: 'var(--esanti-dark-green)' }}>
@@ -115,7 +116,7 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
                   </p>
                 </div>
               </div>
-              
+
               <div className="p-8 md:p-12">
                 <h3 className="text-center mb-8" style={{ color: 'var(--esanti-dark-green)' }}>The Colors of Our Journey</h3>
                 <div className="grid md:grid-cols-5 gap-6">
@@ -124,36 +125,36 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
                     <h4 className="mb-2 text-sm">Red</h4>
                     <p className="text-sm text-gray-600">Our Struggles</p>
                   </div>
-                  
+
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto rounded-full mb-4 shadow-lg" style={{ backgroundColor: 'var(--esanti-orange)' }}></div>
                     <h4 className="mb-2 text-sm">Orange</h4>
                     <p className="text-sm text-gray-600">The Efforts</p>
                   </div>
-                  
+
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto rounded-full mb-4 shadow-lg" style={{ backgroundColor: 'var(--esanti-yellow)' }}></div>
                     <h4 className="mb-2 text-sm">Yellow</h4>
                     <p className="text-sm text-gray-600">The Vision</p>
                   </div>
-                  
+
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto rounded-full mb-4 shadow-lg" style={{ backgroundColor: 'var(--esanti-green)' }}></div>
                     <h4 className="mb-2 text-sm">Light Green</h4>
                     <p className="text-sm text-gray-600">The Renewal</p>
                   </div>
-                  
+
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto rounded-full mb-4 shadow-lg" style={{ backgroundColor: 'var(--esanti-dark-green)' }}></div>
                     <h4 className="mb-2 text-sm">Dark Green</h4>
                     <p className="text-sm text-gray-600">The Prosperity</p>
                   </div>
                 </div>
-                
+
                 <div className="mt-8 p-6 rounded-lg bg-gray-50 text-center">
                   <p className="text-gray-700 leading-relaxed">
-                    These colors tell our story—from the struggles we've endured, through the efforts we put forth, 
-                    guided by our vision, experiencing renewal, and ultimately achieving prosperity. Every element of 
+                    These colors tell our story—from the struggles we've endured, through the efforts we put forth,
+                    guided by our vision, experiencing renewal, and ultimately achieving prosperity. Every element of
                     Esanti Africa reflects this journey from striving to thriving.
                   </p>
                 </div>
@@ -179,7 +180,7 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
                 </div>
                 <h3 className="mb-3" style={{ color: 'var(--esanti-dark-green)' }}>Loving God</h3>
                 <p className="text-gray-700">
-                  We ground our work in faith and spiritual principles that guide our mission to serve with integrity, 
+                  We ground our work in faith and spiritual principles that guide our mission to serve with integrity,
                   compassion, and purpose.
                 </p>
               </CardContent>
@@ -192,7 +193,7 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
                 </div>
                 <h3 className="mb-3" style={{ color: 'var(--esanti-dark-green)' }}>Loving Others</h3>
                 <p className="text-gray-700">
-                  Community and service are at the heart of everything we do. We build tools that empower people to 
+                  Community and service are at the heart of everything we do. We build tools that empower people to
                   support and uplift one another.
                 </p>
               </CardContent>
@@ -205,7 +206,7 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
                 </div>
                 <h3 className="mb-3" style={{ color: 'var(--esanti-dark-green)' }}>Loving Self</h3>
                 <p className="text-gray-700">
-                  We promote self-development, economic empowerment, and individual growth. Every citizen deserves 
+                  We promote self-development, economic empowerment, and individual growth. Every citizen deserves
                   tools to build their future.
                 </p>
               </CardContent>
@@ -221,7 +222,7 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
             </div>
             <h2 className="mb-4">Our Manifesto</h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              Esanti Africa reimagines what it means to belong. We are not bound by geography but united by shared 
+              Esanti Africa reimagines what it means to belong. We are not bound by geography but united by shared
               values, heritage, and vision. As citizens of this digital nation, we commit to:
             </p>
           </div>
@@ -340,8 +341,8 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
               <div>
                 <h2 className="mb-4">Transparency & Accountability</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  We publish quarterly financial reports, project updates, and impact assessments. Every donation, 
-                  every project milestone, and every marketplace transaction is tracked and verified. Citizens have 
+                  We publish quarterly financial reports, project updates, and impact assessments. Every donation,
+                  every project milestone, and every marketplace transaction is tracked and verified. Citizens have
                   the right to vote on governance decisions and platform policies.
                 </p>
                 <div className="grid md:grid-cols-3 gap-4 text-sm">
@@ -364,20 +365,17 @@ export function AboutPage({ onBack = () => {}, canGoBack = false }: AboutPagePro
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { value: '10,000+', label: 'Active Citizens' },
-            { value: '500+', label: 'Projects Funded' },
-            { value: '2,000+', label: 'Books Available' },
-            { value: '50+', label: 'Countries Represented' },
-          ].map((stat, idx) => (
-            <div key={idx} className="text-center p-6 rounded-lg bg-gradient-to-br from-gray-50 to-white border border-gray-100">
-              <div className="text-3xl md:text-4xl mb-2" style={{ color: 'var(--esanti-dark-green)' }}>
-                {stat.value}
-              </div>
-              <div className="text-sm text-gray-600">{stat.label}</div>
+        {/* Impact Goal */}
+        <div className="mt-16 text-center max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-[var(--esanti-green)] to-[var(--esanti-dark-green)] rounded-2xl p-10 text-white shadow-2xl transform hover:scale-[1.02] transition-transform duration-300">
+            <div className="flex items-center justify-center mb-6">
+              <Globe className="w-10 h-10 text-[var(--esanti-yellow)] mr-4 animate-pulse" />
+              <h2 className="text-3xl md:text-4xl font-bold">Our Vision 2043</h2>
             </div>
-          ))}
+            <p className="text-xl md:text-3xl font-light leading-relaxed">
+              "Aiming for <span className="font-bold text-[var(--esanti-yellow)]">1 billion dollars</span> worth of positive impact made within the next 18 years."
+            </p>
+          </div>
         </div>
       </div>
     </div>

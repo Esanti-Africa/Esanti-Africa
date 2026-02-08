@@ -1,27 +1,43 @@
 import { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { MarketplacePage } from './components/MarketplacePage';
-import { BooksPage } from './components/BooksPage';
-import { NewsPage } from './components/NewsPage';
 import { ProjectsPage } from './components/ProjectsPage';
+import { AdminDashboard } from './components/AdminDashboard';
 import { CitizenDashboard } from './components/CitizenDashboard';
 import { LoginPage } from './components/LoginPage';
 import { SignupPage } from './components/SignupPage';
 import { AboutPage } from './components/AboutPage';
 import { Toaster } from './components/ui/sonner';
-import esantiLogo from 'figma:asset/6073016e94328581a129c7018a395de985b00448.png';
+import { BlogPage } from './components/BlogPage';
+import { getCurrentUser, loginUser, logoutUser, canAccessAdmin, User } from './data/auth';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import esantiLogo from './assets/6073016e94328581a129c7018a395de985b00448.png';
+
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // Demo: set to false initially
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['home']);
 
-  // Demo citizen data
-  const citizenData = {
-    id: 'ES-2025-00234',
-    donorRank: 'Gold',
-  };
+  useEffect(() => {
+    // Restore session on load
+    const user = getCurrentUser();
+    setCurrentUser(user);
+
+    // Simple redirect if on admin and not authorized
+    if (currentPage === 'admin' && !canAccessAdmin(user)) {
+      setCurrentPage('login');
+      toast.error("Unauthorized access. Please log in.");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Protect admin route on navigation
+    if (currentPage === 'admin' && !canAccessAdmin(currentUser)) {
+      setCurrentPage('login');
+    }
+  }, [currentPage, currentUser]);
 
   const handleNavigate = (page: string) => {
     setNavigationHistory(prev => [...prev, page]);
@@ -40,13 +56,37 @@ export default function App() {
     }
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const handleLogin = (email: string) => {
+    // Demo login logic
+    let role: User['role'] = 'member';
+    if (email.includes('admin')) role = 'admin';
+    if (email.includes('editor')) role = 'editor';
+
+    const user = loginUser(email, role);
+    setCurrentUser(user);
+
+    if (canAccessAdmin(user)) {
+      handleNavigate('admin');
+    } else {
+      handleNavigate('home'); // Redirect to member area
+    }
+    toast.success(`Welcome back, ${user.name}`);
   };
 
-  const handleSignup = () => {
-    setIsLoggedIn(true);
+  const handleSignup = (email: string) => {
+    const user = loginUser(email, 'member');
+    setCurrentUser(user);
+    handleNavigate('home');
+    toast.success('Account created successfully!');
   };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    handleNavigate('home');
+    toast.success('Logged out successfully');
+  };
+
 
   const canGoBack = navigationHistory.length > 1 && currentPage !== 'home';
 
@@ -54,14 +94,12 @@ export default function App() {
     switch (currentPage) {
       case 'home':
         return <Hero onNavigate={handleNavigate} />;
-      case 'marketplace':
-        return <MarketplacePage onBack={handleBack} canGoBack={canGoBack} />;
-      case 'books':
-        return <BooksPage onBack={handleBack} canGoBack={canGoBack} />;
-      case 'news':
-        return <NewsPage onBack={handleBack} canGoBack={canGoBack} />;
       case 'projects':
         return <ProjectsPage onBack={handleBack} canGoBack={canGoBack} />;
+      case 'blog':
+        return <BlogPage onBack={handleBack} canGoBack={canGoBack} />;
+      case 'admin':
+        return canAccessAdmin(currentUser) ? <AdminDashboard /> : <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />;
       case 'dashboard':
         return <CitizenDashboard onBack={handleBack} canGoBack={canGoBack} />;
       case 'about':
@@ -69,9 +107,10 @@ export default function App() {
       case 'donate':
         return <DonatePage onBack={handleBack} canGoBack={canGoBack} />;
       case 'login':
-        return <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />;
+        return <LoginPage onNavigate={handleNavigate} onLogin={(email) => handleLogin(email)} />;
       case 'signup':
-        return <SignupPage onNavigate={handleNavigate} onSignup={handleSignup} />;
+        // Note: SignupPage prop interface might need update if we want to pass handleSignup with email
+        return <SignupPage onNavigate={handleNavigate} onSignup={(email) => handleSignup(email || 'new@user.com')} />;
       default:
         return <Hero onNavigate={handleNavigate} />;
     }
@@ -92,20 +131,21 @@ export default function App() {
       <Navbar
         currentPage={currentPage}
         onNavigate={handleNavigate}
-        isLoggedIn={isLoggedIn}
-        citizenId={isLoggedIn ? citizenData.id : undefined}
-        donorRank={isLoggedIn ? citizenData.donorRank : undefined}
+        isLoggedIn={!!currentUser}
+        citizenId={currentUser?.id}
+        donorRank={currentUser?.donorRank}
+        user={currentUser}
       />
-      
+
       {renderPage()}
-      
+
       <Footer onNavigate={handleNavigate} />
       <Toaster />
     </div>
   );
 }
 
-function DonatePage({ onBack = () => {}, canGoBack = false }: { onBack?: () => void; canGoBack?: boolean }) {
+function DonatePage({ onBack = () => { }, canGoBack = false }: { onBack?: () => void; canGoBack?: boolean }) {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -119,7 +159,7 @@ function DonatePage({ onBack = () => {}, canGoBack = false }: { onBack?: () => v
         )}
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="mb-6">Support Esanti Africa</h1>
-          
+
           <div className="space-y-8">
             <section>
               <p className="text-gray-700 leading-relaxed mb-6">
@@ -134,11 +174,11 @@ function DonatePage({ onBack = () => {}, canGoBack = false }: { onBack?: () => v
                 <div className="border rounded-lg p-6 border-l-4 border-amber-700">
                   <div className="flex items-center justify-between mb-2">
                     <h3 style={{ color: 'var(--esanti-dark-green)' }}>Bronze</h3>
-                    <div className="px-3 py-1 rounded-full bg-amber-700 text-white text-sm">KES 0 - 10K</div>
+                    <div className="px-3 py-1 rounded-full bg-amber-700 text-white text-sm">0 - 50k FCFA</div>
                   </div>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Citizen dashboard access</li>
-                    <li>• Marketplace credits</li>
+                    <li>• Project updates</li>
                     <li>• Monthly newsletter</li>
                   </ul>
                 </div>
@@ -146,31 +186,31 @@ function DonatePage({ onBack = () => {}, canGoBack = false }: { onBack?: () => v
                 <div className="border rounded-lg p-6 border-l-4 border-gray-400">
                   <div className="flex items-center justify-between mb-2">
                     <h3 style={{ color: 'var(--esanti-dark-green)' }}>Silver</h3>
-                    <div className="px-3 py-1 rounded-full bg-gray-400 text-white text-sm">KES 10K - 25K</div>
+                    <div className="px-3 py-1 rounded-full bg-gray-400 text-white text-sm">50k - 150k FCFA</div>
                   </div>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• All Bronze benefits</li>
-                    <li>• 10% marketplace discount</li>
                     <li>• Early project access</li>
+                    <li>• Public recognition</li>
                   </ul>
                 </div>
 
                 <div className="border rounded-lg p-6 border-l-4 border-yellow-500">
                   <div className="flex items-center justify-between mb-2">
                     <h3 style={{ color: 'var(--esanti-dark-green)' }}>Gold</h3>
-                    <div className="px-3 py-1 rounded-full bg-yellow-500 text-white text-sm">KES 25K - 50K</div>
+                    <div className="px-3 py-1 rounded-full bg-yellow-500 text-white text-sm">150k - 300k FCFA</div>
                   </div>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• All Silver benefits</li>
-                    <li>• 20% marketplace discount</li>
                     <li>• Governance voting rights</li>
+                    <li>• Direct creator access</li>
                   </ul>
                 </div>
 
                 <div className="border rounded-lg p-6 border-l-4 border-purple-600">
                   <div className="flex items-center justify-between mb-2">
                     <h3 style={{ color: 'var(--esanti-dark-green)' }}>Platinum</h3>
-                    <div className="px-3 py-1 rounded-full bg-purple-600 text-white text-sm">KES 50K+</div>
+                    <div className="px-3 py-1 rounded-full bg-purple-600 text-white text-sm">300k+ FCFA</div>
                   </div>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• All Gold benefits</li>
@@ -184,16 +224,18 @@ function DonatePage({ onBack = () => {}, canGoBack = false }: { onBack?: () => v
             <section className="border-t pt-8">
               <h2 className="mb-4">Make a Donation</h2>
               <div className="bg-gradient-to-br from-[var(--esanti-red)] via-[var(--esanti-yellow)] to-[var(--esanti-green)] p-8 rounded-lg text-white text-center">
-                <h3 className="mb-4">Payment Integration</h3>
+                <h3 className="mb-4">Direct Donation Channels</h3>
                 <p className="mb-6 opacity-90">
-                  In production, this would integrate with mobile money (M-Pesa, MTN MoMo, Airtel Money) and card payments
-                  via Flutterwave or Paystack.
+                  Please use the following mobile money numbers to support our projects.
+                  Ensure you reference the project name if donating to a specific cause.
                 </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <div className="bg-white/20 px-4 py-2 rounded-full text-sm">M-Pesa</div>
-                  <div className="bg-white/20 px-4 py-2 rounded-full text-sm">MTN MoMo</div>
-                  <div className="bg-white/20 px-4 py-2 rounded-full text-sm">Airtel Money</div>
-                  <div className="bg-white/20 px-4 py-2 rounded-full text-sm">Visa/Mastercard</div>
+                <div className="flex flex-col gap-3 justify-center items-center">
+                  <div className="bg-white/20 px-6 py-3 rounded-lg text-lg font-mono">
+                    <span className="font-bold">Orange Money:</span> +237 69x xxx xxx
+                  </div>
+                  <div className="bg-white/20 px-6 py-3 rounded-lg text-lg font-mono">
+                    <span className="font-bold">MTN Mobile Money:</span> +237 67x xxx xxx
+                  </div>
                 </div>
               </div>
             </section>
@@ -222,10 +264,8 @@ function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
           <div>
             <h4 className="mb-4">Platform</h4>
             <ul className="space-y-2 text-sm text-white/80">
-              <li><button onClick={() => onNavigate('marketplace')} className="hover:text-white">Marketplace</button></li>
-              <li><button onClick={() => onNavigate('books')} className="hover:text-white">Books</button></li>
-              <li><button onClick={() => onNavigate('news')} className="hover:text-white">News</button></li>
               <li><button onClick={() => onNavigate('projects')} className="hover:text-white">Projects</button></li>
+              <li><button onClick={() => onNavigate('admin')} className="hover:text-white">Admin</button></li>
             </ul>
           </div>
 
