@@ -1,4 +1,11 @@
 
+export interface Comment {
+    id: string;
+    user: string;
+    text: string;
+    date: string;
+}
+
 export interface BlogPost {
     id: string;
     title: string;
@@ -9,7 +16,18 @@ export interface BlogPost {
     image: string;
     readTime: string;
     status: 'draft' | 'published';
+    category: string;
+    comments: Comment[];
 }
+
+const initialComments: Comment[] = [
+    {
+        id: 'c1',
+        user: 'Jane Doe',
+        text: 'This is such an inspiring story! Keep up the great work.',
+        date: '2025-10-16'
+    }
+];
 
 const initialPosts: BlogPost[] = [
     {
@@ -36,7 +54,9 @@ const initialPosts: BlogPost[] = [
         date: '2025-10-15',
         image: 'https://images.unsplash.com/photo-1574482620826-40685ca5ebd2?q=80&w=2574&auto=format&fit=crop',
         readTime: '5 min read',
-        status: 'published'
+        status: 'published',
+        category: 'Water',
+        comments: initialComments
     },
     {
         id: '2',
@@ -47,11 +67,14 @@ const initialPosts: BlogPost[] = [
         date: '2025-11-02',
         image: 'https://images.unsplash.com/photo-1605000797499-95a059e51b84?q=80&w=2592&auto=format&fit=crop',
         readTime: '4 min read',
-        status: 'published'
+        status: 'published',
+        category: 'Agriculture',
+        comments: []
     }
 ];
 
 const STORAGE_KEY = 'esanti_blog_data';
+const CATEGORIES_KEY = 'esanti_blog_categories';
 
 export const getBlogPosts = (): BlogPost[] => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -66,4 +89,24 @@ export const saveBlogPosts = (posts: BlogPost[]) => {
 export const deleteBlogPost = (id: string) => {
     const posts = getBlogPosts().filter(p => p.id !== id);
     saveBlogPosts(posts);
+};
+
+export const getCategories = (): string[] => {
+    const stored = localStorage.getItem(CATEGORIES_KEY);
+    if (stored) return JSON.parse(stored);
+    return ['Water', 'Agriculture', 'Education', 'Health', 'Technology'];
+};
+
+export const saveCategories = (categories: string[]) => {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+};
+
+export const addComment = (postId: string, comment: Comment) => {
+    const posts = getBlogPosts();
+    const postIndex = posts.findIndex(p => p.id === postId);
+    if (postIndex >= 0) {
+        if (!posts[postIndex].comments) posts[postIndex].comments = [];
+        posts[postIndex].comments.push(comment);
+        saveBlogPosts(posts);
+    }
 };

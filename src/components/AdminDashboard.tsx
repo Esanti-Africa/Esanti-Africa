@@ -14,7 +14,7 @@ import {
 } from './ui/table';
 import { Badge } from './ui/badge';
 import { getProjects, saveProjects, Project, Milestone } from '../data/projects';
-import { getBlogPosts, saveBlogPosts, deleteBlogPost, BlogPost } from '../data/blog';
+import { getBlogPosts, saveBlogPosts, deleteBlogPost, BlogPost, getCategories, saveCategories } from '../data/blog';
 import { getLogs, addLog, LogEntry } from '../data/logs';
 import { toast } from 'sonner';
 
@@ -24,6 +24,8 @@ export function AdminDashboard() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
     const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [newCategory, setNewCategory] = useState('');
 
     // Project Editing State
     const [isEditingProject, setIsEditingProject] = useState<boolean>(false);
@@ -37,7 +39,32 @@ export function AdminDashboard() {
         setProjects(getProjects());
         setBlogPosts(getBlogPosts());
         setLogs(getLogs());
+        setCategories(getCategories());
     }, [activeTab]); // Refresh data on tab change
+
+    const handleAddCategory = () => {
+        if (!newCategory.trim()) return;
+        if (categories.includes(newCategory.trim())) {
+            toast.error('Category already exists');
+            return;
+        }
+        const updated = [...categories, newCategory.trim()];
+        setCategories(updated);
+        saveCategories(updated);
+        setNewCategory('');
+        toast.success('Category added');
+        addLog('Current User', 'CREATE_CATEGORY', `Created category ${newCategory}`);
+    };
+
+    const handleDeleteCategory = (category: string) => {
+        if (confirm(`Delete category ${category}?`)) {
+            const updated = categories.filter(c => c !== category);
+            setCategories(updated);
+            saveCategories(updated);
+            toast.success('Category deleted');
+            addLog('Current User', 'DELETE_CATEGORY', `Deleted category ${category}`);
+        }
+    };
 
 
     const handleDeleteProject = (id: string) => {
@@ -114,7 +141,9 @@ export function AdminDashboard() {
             date: new Date().toISOString().split('T')[0],
             image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2573&auto=format&fit=crop',
             readTime: '5 min read',
-            status: 'draft'
+            status: 'draft',
+            category: 'General',
+            comments: []
         };
         setCurrentPost(newPost);
         setIsEditingPost(true);
@@ -255,49 +284,144 @@ export function AdminDashboard() {
                     {/* BLOG TAB */}
                     <TabsContent value="blog">
                         {!isEditingPost ? (
-                            <div className="space-y-6">
-                                <div className="flex justify-end">
-                                    <Button onClick={handleAddNewPost} className="bg-green-600 hover:bg-green-700">
-                                        <Plus className="w-4 h-4 mr-2" /> New Blog Post
-                                    </Button>
-                                </div>
-                                <Card>
-                                    <CardContent className="pt-6">
-                                        <Table>
-                                            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Author</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
-                                            <TableBody>
-                                                {blogPosts.map((post) => (
-                                                    <TableRow key={post.id}>
-                                                        <TableCell className="font-medium">{post.title}</TableCell>
-                                                        <TableCell>{post.author}</TableCell>
-                                                        <TableCell>{post.date}</TableCell>
-                                                        <TableCell><Badge variant={post.status === 'published' ? 'default' : 'secondary'}>{post.status}</Badge></TableCell>
-                                                        <TableCell className="text-right">
-                                                            <Button variant="ghost" size="icon" onClick={() => { setCurrentPost(post); setIsEditingPost(true); }}><Edit2 className="w-4 h-4" /></Button>
-                                                            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeletePost(post.id)}><Trash2 className="w-4 h-4" /></Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                            <div className="grid md:grid-cols-4 gap-6">
+                                {/* Categories Sidebar */}
+                                <Card className="md:col-span-1">
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">Categories</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex gap-2 mb-4">
+                                            <Input
+                                                placeholder="New Category"
+                                                value={newCategory}
+                                                onChange={(e) => setNewCategory(e.target.value)}
+                                            />
+                                            <Button size="icon" onClick={handleAddCategory}>
+                                                <Plus className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {categories.map((cat) => (
+                                                <div key={cat} className="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 group">
+                                                    <span className="text-sm font-medium">{cat}</span>
+                                                    <button
+                                                        onClick={() => handleDeleteCategory(cat)}
+                                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </CardContent>
                                 </Card>
+
+                                {/* Blog Posts List */}
+                                <div className="md:col-span-3 space-y-6">
+                                    <div className="flex justify-end">
+                                        <Button onClick={handleAddNewPost} className="bg-green-600 hover:bg-green-700">
+                                            <Plus className="w-4 h-4 mr-2" /> New Blog Post
+                                        </Button>
+                                    </div>
+                                    <Card>
+                                        <CardContent className="pt-6">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Title</TableHead>
+                                                        <TableHead>Category</TableHead>
+                                                        <TableHead>Author</TableHead>
+                                                        <TableHead>Date</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {blogPosts.map((post) => (
+                                                        <TableRow key={post.id}>
+                                                            <TableCell className="font-medium">{post.title}</TableCell>
+                                                            <TableCell><Badge variant="outline">{post.category || 'Uncategorized'}</Badge></TableCell>
+                                                            <TableCell>{post.author}</TableCell>
+                                                            <TableCell>{post.date}</TableCell>
+                                                            <TableCell><Badge variant={post.status === 'published' ? 'default' : 'secondary'}>{post.status}</Badge></TableCell>
+                                                            <TableCell className="text-right">
+                                                                <Button variant="ghost" size="icon" onClick={() => { setCurrentPost(post); setIsEditingPost(true); }}><Edit2 className="w-4 h-4" /></Button>
+                                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDeletePost(post.id)}><Trash2 className="w-4 h-4" /></Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </div>
                         ) : (
-                            <div className="bg-white p-8 rounded-lg shadow-md">
-                                <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-semibold">Edit Post</h2><Button variant="ghost" onClick={() => setIsEditingPost(false)}><X className="w-4 h-4" /></Button></div>
-                                <div className="space-y-4 mb-6">
-                                    <div><label className="block text-sm font-medium mb-1">Title</label><Input value={currentPost?.title} onChange={(e) => updatePostField('title', e.target.value)} /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Excerpt</label><Input value={currentPost?.excerpt} onChange={(e) => updatePostField('excerpt', e.target.value)} /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Image URL</label><Input value={currentPost?.image} onChange={(e) => updatePostField('image', e.target.value)} /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Content (Markdown)</label><textarea className="w-full border rounded-md p-2 h-64" value={currentPost?.content} onChange={(e) => updatePostField('content', e.target.value)} /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Status</label>
-                                        <select className="w-full border rounded-md p-2" value={currentPost?.status} onChange={(e) => updatePostField('status', e.target.value)}>
-                                            <option value="draft">Draft</option><option value="published">Published</option>
-                                        </select>
+                            <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-semibold">{currentPost?.id ? 'Edit Post' : 'New Post'}</h2>
+                                    <Button variant="ghost" onClick={() => setIsEditingPost(false)}><X className="w-4 h-4" /></Button>
+                                </div>
+                                <div className="grid md:grid-cols-3 gap-6 mb-6">
+                                    <div className="md:col-span-2 space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Title</label>
+                                            <Input value={currentPost?.title} onChange={(e) => updatePostField('title', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Excerpt</label>
+                                            <textarea className="w-full border rounded-md p-2 h-20" value={currentPost?.excerpt} onChange={(e) => updatePostField('excerpt', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Content (Markdown)</label>
+                                            <textarea className="w-full border rounded-md p-2 h-96 font-mono text-sm" value={currentPost?.content} onChange={(e) => updatePostField('content', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Status</label>
+                                            <select className="w-full border rounded-md p-2" value={currentPost?.status} onChange={(e) => updatePostField('status', e.target.value)}>
+                                                <option value="draft">Draft</option>
+                                                <option value="published">Published</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Category</label>
+                                            <select
+                                                className="w-full border rounded-md p-2"
+                                                value={currentPost?.category || ''}
+                                                onChange={(e) => updatePostField('category', e.target.value)}
+                                            >
+                                                <option value="">Select Category</option>
+                                                {categories.map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Featured Image URL</label>
+                                            <Input value={currentPost?.image} onChange={(e) => updatePostField('image', e.target.value)} />
+                                            {currentPost?.image && (
+                                                <div className="mt-2 h-32 w-full overflow-hidden rounded bg-gray-100">
+                                                    <img src={currentPost.image} alt="Preview" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Read Time</label>
+                                            <Input value={currentPost?.readTime} onChange={(e) => updatePostField('readTime', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Author</label>
+                                            <Input value={currentPost?.author} onChange={(e) => updatePostField('author', e.target.value)} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setIsEditingPost(false)}>Cancel</Button><Button onClick={handleSavePost} className="bg-green-600 hover:bg-green-700">Save Post</Button></div>
+                                <div className="flex justify-end gap-3 pt-6 border-t">
+                                    <Button variant="outline" onClick={() => setIsEditingPost(false)}>Cancel</Button>
+                                    <Button onClick={handleSavePost} className="bg-green-600 hover:bg-green-700">Save Post</Button>
+                                </div>
                             </div>
                         )}
                     </TabsContent>
